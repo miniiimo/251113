@@ -163,7 +163,7 @@ export function useMultiplayerDroplets({
       isGenerating = true;
       lastSpawnTime = now;
       
-      const { problem, error } = await generateRoomProblem(
+      const { error } = await generateRoomProblem(
         roomId,
         difficulty,
         customTables || undefined
