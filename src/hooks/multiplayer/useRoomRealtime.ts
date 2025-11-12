@@ -411,10 +411,10 @@ export const useRoomRealtime = (roomId: string | null): UseRoomRealtimeReturn =>
         await refreshParticipants();
       }, 3000);
 
-      // 게임 세션 0.5초마다 자동 갱신 (실시간 점수 동기화) - 더 빠른 동기화
+      // 게임 세션 0.3초마다 자동 갱신 (실시간 점수 동기화) - 매우 빠른 동기화
       sessionsRefreshInterval = setInterval(async () => {
         await loadGameSessions();
-      }, 500);
+      }, 300);
 
       // 방 존재 여부 및 상태 2초마다 확인 (방 삭제 감지 및 상태 동기화)
       roomCheckInterval = setInterval(async () => {

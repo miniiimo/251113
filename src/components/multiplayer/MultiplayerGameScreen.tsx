@@ -176,7 +176,7 @@ export const MultiplayerGameScreen: React.FC<MultiplayerGameScreenProps> = ({ ro
           console.error('[MultiplayerGameScreen] 실시간 점수 업데이트 최종 실패 (재시도 3회 실패)');
         }
       }
-    }, 500); // 0.5초로 단축하여 더 빠른 동기화
+    }, 300); // 0.3초로 단축하여 매우 빠른 동기화
     
     return () => {
       if (scoreUpdateIntervalRef.current) {
@@ -249,23 +249,23 @@ export const MultiplayerGameScreen: React.FC<MultiplayerGameScreenProps> = ({ ro
   const participantScores = useMemo(() => {
     const scoreMap = new Map<string, number>();
     
+    // 먼저 모든 참가자의 기본 점수를 0으로 초기화
+    participants.forEach(participant => {
+      scoreMap.set(participant.user_id, 0);
+    });
+    
     // 게임 세션에서 점수 매핑 (모든 플레이어 포함)
     gameSessions.forEach(session => {
       scoreMap.set(session.user_id, session.score);
     });
     
-    // 현재 플레이어도 gameSessions에서 가져오되, 없으면 로컬 점수 사용
+    // 현재 플레이어는 항상 로컬 점수를 우선 사용 (가장 최신)
     if (user?.id) {
-      const sessionScore = gameSessions.find(s => s.user_id === user.id)?.score;
-      if (sessionScore !== undefined) {
-        scoreMap.set(user.id, sessionScore);
-      } else {
-        scoreMap.set(user.id, stats.score);
-      }
+      scoreMap.set(user.id, stats.score);
     }
     
     return scoreMap;
-  }, [gameSessions, user?.id, stats.score]);
+  }, [gameSessions, participants, user?.id, stats.score]);
 
   // 정렬된 참가자 목록 (메모이제이션)
   const sortedParticipants = useMemo(() => {
