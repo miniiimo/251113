@@ -398,7 +398,13 @@ export const saveGameSession = async (
       return { session: null, error: error.message };
     }
 
-    console.log('[saveGameSession] game_sessions 저장 성공:', data.id);
+    console.log('[saveGameSession] game_sessions 저장 성공:', data.id, '점수:', score);
+    
+    // 저장 성공 확인을 위해 로그 강화
+    if (!data || !data.id) {
+      console.error('[saveGameSession] 저장된 데이터가 없음:', data);
+      return { session: null, error: '게임 기록 저장에 실패했습니다.' };
+    }
 
     // 2. users 테이블의 best_score 업데이트 (타임아웃 처리)
     console.log('[saveGameSession] users 테이블 best_score 업데이트 시작');

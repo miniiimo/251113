@@ -44,20 +44,51 @@ export const MultiplayerGameScreen: React.FC<MultiplayerGameScreenProps> = ({ ro
     if (!user || gameEndedRef.current) return;
     gameEndedRef.current = true;
 
-    // 게임 기록 저장
-    await saveGameSession(
-      user.id,
-      room.id,
-      finalStats.score,
-      finalStats.correctAnswers,
-      finalStats.totalAttempts,
-      room.difficulty
-    );
+    console.log('[MultiplayerGameScreen] 게임 종료, 최종 점수 저장 시작:', finalStats.score);
+    
+    // 게임 기록 저장 - 재시도 로직 추가
+    let retries = 5;
+    let success = false;
+    
+    while (retries > 0 && !success) {
+      try {
+        const result = await saveGameSession(
+          user.id,
+          room.id,
+          finalStats.score,
+          finalStats.correctAnswers,
+          finalStats.totalAttempts,
+          room.difficulty
+        );
+        
+        if (result.error) {
+          console.error('[MultiplayerGameScreen] 최종 점수 저장 실패:', result.error, '남은 재시도:', retries - 1);
+          retries--;
+          if (retries > 0) {
+            await new Promise(resolve => setTimeout(resolve, 1000)); // 1초 후 재시도
+          }
+        } else {
+          console.log('[MultiplayerGameScreen] 최종 점수 저장 성공:', finalStats.score);
+          success = true;
+        }
+      } catch (error) {
+        console.error('[MultiplayerGameScreen] 최종 점수 저장 예외:', error, '남은 재시도:', retries - 1);
+        retries--;
+        if (retries > 0) {
+          await new Promise(resolve => setTimeout(resolve, 1000)); // 1초 후 재시도
+        }
+      }
+    }
+    
+    if (!success) {
+      console.error('[MultiplayerGameScreen] 최종 점수 저장 최종 실패 (재시도 5회 실패)');
+      alert('점수 저장에 실패했습니다. 네트워크 연결을 확인해주세요.');
+    }
 
-    // 잠시 후 게임 오버 화면으로 이동
+    // 잠시 후 게임 오버 화면으로 이동 (저장 성공 여부와 관계없이)
     setTimeout(() => {
       onGameOver();
-    }, 2000);
+    }, success ? 1000 : 2000); // 저장 성공 시 1초, 실패 시 2초 후 이동
   }
 
   // 게임 시작 시 세션 즉시 생성
@@ -105,7 +136,7 @@ export const MultiplayerGameScreen: React.FC<MultiplayerGameScreenProps> = ({ ro
     inputRef.current?.focus();
   }, [user, room.id, room.difficulty]);
 
-  // 실시간 점수 업데이트 (3초마다) - 주기 증가로 리렌더링 감소
+  // 실시간 점수 업데이트 (2초마다) - 주기 단축으로 실시간성 향상
   useEffect(() => {
     if (!user || !isGameActive || gameEndedRef.current) return;
 
@@ -117,21 +148,45 @@ export const MultiplayerGameScreen: React.FC<MultiplayerGameScreenProps> = ({ ro
         console.log('[MultiplayerGameScreen] 실시간 점수 업데이트:', stats.score);
         lastScoreUpdateRef.current = stats.score;
         
-        // 세션 업데이트 (게임 중간 점수 동기화용)
-        try {
-          await saveGameSession(
-            user.id,
-            room.id,
-            stats.score,
-            stats.correctAnswers,
-            stats.totalAttempts,
-            room.difficulty
-          );
-        } catch (error) {
-          console.error('[MultiplayerGameScreen] 실시간 점수 업데이트 실패:', error);
+        // 세션 업데이트 (게임 중간 점수 동기화용) - 재시도 로직 추가
+        let retries = 3;
+        let success = false;
+        
+        while (retries > 0 && !success) {
+          try {
+            const result = await saveGameSession(
+              user.id,
+              room.id,
+              stats.score,
+              stats.correctAnswers,
+              stats.totalAttempts,
+              room.difficulty
+            );
+            
+            if (result.error) {
+              console.error('[MultiplayerGameScreen] 실시간 점수 업데이트 실패:', result.error);
+              retries--;
+              if (retries > 0) {
+                await new Promise(resolve => setTimeout(resolve, 500)); // 0.5초 후 재시도
+              }
+            } else {
+              console.log('[MultiplayerGameScreen] 실시간 점수 업데이트 성공:', stats.score);
+              success = true;
+            }
+          } catch (error) {
+            console.error('[MultiplayerGameScreen] 실시간 점수 업데이트 예외:', error);
+            retries--;
+            if (retries > 0) {
+              await new Promise(resolve => setTimeout(resolve, 500)); // 0.5초 후 재시도
+            }
+          }
+        }
+        
+        if (!success) {
+          console.error('[MultiplayerGameScreen] 실시간 점수 업데이트 최종 실패 (재시도 3회 실패)');
         }
       }
-    }, 3000);
+    }, 2000); // 3초에서 2초로 단축
     
     return () => {
       if (scoreUpdateIntervalRef.current) {

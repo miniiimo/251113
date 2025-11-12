@@ -19,7 +19,34 @@ export const MultiplayerResultScreen: React.FC<MultiplayerResultScreenProps> = (
     
     const fetchResults = async () => {
       console.log('[MultiplayerResultScreen] 게임 세션 조회 시작:', room.id);
-      const { sessions: fetchedSessions, error } = await getRoomGameSessions(room.id);
+      
+      // 재시도 로직 추가
+      let retries = 3;
+      let fetchedSessions: GameSession[] | null = null;
+      let error: string | null = null;
+      
+      while (retries > 0 && !fetchedSessions) {
+        const result = await getRoomGameSessions(room.id);
+        
+        if (result.error) {
+          console.error('[MultiplayerResultScreen] 게임 세션 조회 실패:', result.error, '남은 재시도:', retries - 1);
+          error = result.error;
+          retries--;
+          if (retries > 0) {
+            await new Promise(resolve => setTimeout(resolve, 1000)); // 1초 후 재시도
+          }
+        } else if (result.sessions) {
+          fetchedSessions = result.sessions;
+          error = null;
+          break;
+        } else {
+          console.warn('[MultiplayerResultScreen] 세션 데이터가 null:', '남은 재시도:', retries - 1);
+          retries--;
+          if (retries > 0) {
+            await new Promise(resolve => setTimeout(resolve, 1000)); // 1초 후 재시도
+          }
+        }
+      }
 
       if (!error && fetchedSessions) {
         // 세션 데이터의 해시 생성 (변경 여부 확인용)
@@ -46,7 +73,7 @@ export const MultiplayerResultScreen: React.FC<MultiplayerResultScreenProps> = (
           }
         }
       } else {
-        console.error('[MultiplayerResultScreen] 게임 세션 조회 실패:', error);
+        console.error('[MultiplayerResultScreen] 게임 세션 조회 최종 실패:', error || '알 수 없는 오류');
         if (isInitialLoad) {
           setLoading(false);
           isInitialLoad = false;
@@ -58,10 +85,10 @@ export const MultiplayerResultScreen: React.FC<MultiplayerResultScreenProps> = (
     setLoading(true);
     fetchResults();
     
-    // 3초마다 세션 새로고침 (주기 증가로 리렌더링 감소)
+    // 2초마다 세션 새로고침 (주기 단축으로 실시간성 향상)
     const refreshInterval = setInterval(() => {
       fetchResults();
-    }, 3000);
+    }, 2000);
 
     return () => {
       clearInterval(refreshInterval);
