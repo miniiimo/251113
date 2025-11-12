@@ -1,5 +1,5 @@
 import { Droplet, ItemType } from '../types';
-import { GRADE_THRESHOLDS, GAME_CONFIG } from '../constants';
+import { GRADE_THRESHOLDS } from '../constants';
 
 const ITEM_PROBABILITY = 0.35;
 

@@ -26,16 +26,9 @@ export const getOverallLeaderboard = async (
 
     const leaderboardData: LeaderboardEntry[] = (data || []).map((user, index) => ({
       user_id: user.id,
-      user: {
-        id: user.id,
-        nickname: user.nickname,
-        best_score: user.best_score,
-        created_at: '',
-      },
-      total_score: 0,
-      weekly_score: 0,
-      monthly_score: 0,
+      nickname: user.nickname,
       best_score: user.best_score,
+      total_score: 0,
       rank: index + 1,
     }));
 
@@ -88,16 +81,9 @@ export const getWeeklyLeaderboard = async (
 
     const leaderboardData: LeaderboardEntry[] = sortedUsers.map(([userId, data], index) => ({
       user_id: userId,
-      user: {
-        id: userId,
-        nickname: data.nickname,
-        best_score: data.score,
-        created_at: '',
-      },
-      total_score: 0,
-      weekly_score: data.score,
-      monthly_score: 0,
+      nickname: data.nickname,
       best_score: data.score,
+      total_score: 0,
       rank: index + 1,
     }));
 
@@ -150,16 +136,9 @@ export const getMonthlyLeaderboard = async (
 
     const leaderboardData: LeaderboardEntry[] = sortedUsers.map(([userId, data], index) => ({
       user_id: userId,
-      user: {
-        id: userId,
-        nickname: data.nickname,
-        best_score: data.score,
-        created_at: '',
-      },
-      total_score: 0,
-      weekly_score: 0,
-      monthly_score: data.score,
+      nickname: data.nickname,
       best_score: data.score,
+      total_score: 0,
       rank: index + 1,
     }));
 

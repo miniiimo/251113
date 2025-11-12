@@ -92,7 +92,7 @@ export const DifficultyScreen: React.FC<DifficultyScreenProps> = ({
               <h3>{config.name}</h3>
               <p>{config.description}</p>
               <div className="difficulty-details">
-                <span>물방울: {config.maxDroplets}개</span>
+                <span>속도: {config.speed}</span>
               </div>
             </button>
           ))}

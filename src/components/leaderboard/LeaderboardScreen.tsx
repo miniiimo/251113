@@ -10,19 +10,6 @@ export const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({ onBack }) 
   const { user } = useAuth();
   const { data, loading, error, myRank, period, setPeriod, refresh } = useLeaderboard(user?.id);
 
-  const getPeriodLabel = () => {
-    switch (period) {
-      case 'overall':
-        return '전체 랭킹';
-      case 'weekly':
-        return '주간 랭킹';
-      case 'monthly':
-        return '월간 랭킹';
-      default:
-        return '랭킹';
-    }
-  };
-
   const getMedalEmoji = (rank: number) => {
     switch (rank) {
       case 1:
@@ -115,13 +102,9 @@ export const LeaderboardScreen: React.FC<LeaderboardScreenProps> = ({ onBack }) 
                     className={`table-row ${entry.user_id === user?.id ? 'my-entry' : ''}`}
                   >
                     <span className="col-rank">{getMedalEmoji(entry.rank || 0)}</span>
-                    <span className="col-nickname">{entry.user?.nickname || '익명'}</span>
+                    <span className="col-nickname">{entry.nickname || '익명'}</span>
                     <span className="col-score">
-                      {period === 'weekly'
-                        ? entry.weekly_score
-                        : period === 'monthly'
-                        ? entry.monthly_score
-                        : entry.best_score}
+                      {entry.best_score}
                       점
                     </span>
                   </div>

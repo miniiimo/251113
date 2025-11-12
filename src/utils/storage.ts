@@ -1,4 +1,8 @@
-import { STORAGE_KEYS } from '../constants';
+// 로컬 스토리지 키 상수
+const STORAGE_KEYS = {
+  HIGH_SCORE: 'multiplication-rain-high-score',
+  SOUND_ENABLED: 'multiplication-rain-sound-enabled',
+};
 
 // 최고 점수 저장
 export const saveHighScore = (score: number): void => {

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from '../../utils/supabase';
-import { Room, RoomParticipant, GameSession, Droplet } from '../../types';
+import { RoomParticipant, GameSession, Droplet } from '../../types';
 import { getRoomParticipants, getRoomProblem } from '../../services/roomService';
 
 interface UseRoomRealtimeReturn {
@@ -205,14 +205,13 @@ export const useRoomRealtime = (roomId: string | null): UseRoomRealtimeReturn =>
       return;
     }
 
-    let roomChannel: RealtimeChannel;
-    let participantsChannel: RealtimeChannel;
-    let sessionsChannel: RealtimeChannel;
-    let participantsInterval: NodeJS.Timeout;
-    let roomCheckInterval: NodeJS.Timeout;
-    let roomStatusInterval: NodeJS.Timeout;
-    let sessionsRefreshInterval: NodeJS.Timeout;
-    let problemCheckInterval: NodeJS.Timeout;
+    let roomChannel: RealtimeChannel | undefined;
+    let participantsChannel: RealtimeChannel | undefined;
+    let sessionsChannel: RealtimeChannel | undefined;
+    let participantsInterval: NodeJS.Timeout | undefined;
+    let roomCheckInterval: NodeJS.Timeout | undefined;
+    let sessionsRefreshInterval: NodeJS.Timeout | undefined;
+    let problemCheckInterval: NodeJS.Timeout | undefined;
 
     const setupRealtimeSubscriptions = async () => {
       console.log('[useRoomRealtime] 실시간 구독 설정 시작:', roomId);
@@ -231,7 +230,7 @@ export const useRoomRealtime = (roomId: string | null): UseRoomRealtimeReturn =>
       await loadCurrentProblem();
       
       // 문제 주기적 확인 (실시간 구독이 실패할 경우 대비)
-      const problemCheckInterval = setInterval(async () => {
+      problemCheckInterval = setInterval(async () => {
         console.log('[useRoomRealtime] 문제 주기적 확인');
         await loadCurrentProblem();
       }, 2000);
@@ -351,13 +350,19 @@ export const useRoomRealtime = (roomId: string | null): UseRoomRealtimeReturn =>
             // 사용자 정보 조회
             const { data: userData } = await supabase
               .from('users')
-              .select('id, nickname')
+              .select('id, nickname, best_score, created_at, updated_at')
               .eq('id', newSession.user_id)
               .single();
 
             const sessionWithUser: GameSession = {
               ...newSession,
-              user: userData || undefined,
+              user: userData ? {
+                id: userData.id,
+                nickname: userData.nickname,
+                best_score: userData.best_score,
+                created_at: userData.created_at,
+                updated_at: userData.updated_at,
+              } : undefined,
             };
 
             setGameSessions((prev) => {
@@ -397,13 +402,19 @@ export const useRoomRealtime = (roomId: string | null): UseRoomRealtimeReturn =>
             // 사용자 정보 조회
             const { data: userData } = await supabase
               .from('users')
-              .select('id, nickname')
+              .select('id, nickname, best_score, created_at, updated_at')
               .eq('id', updatedSession.user_id)
               .single();
 
             const sessionWithUser: GameSession = {
               ...updatedSession,
-              user: userData || undefined,
+              user: userData ? {
+                id: userData.id,
+                nickname: userData.nickname,
+                best_score: userData.best_score,
+                created_at: userData.created_at,
+                updated_at: userData.updated_at,
+              } : undefined,
             };
 
             setGameSessions((prev) => {
@@ -453,8 +464,8 @@ export const useRoomRealtime = (roomId: string | null): UseRoomRealtimeReturn =>
           // 인터벌 정리
           if (participantsInterval) clearInterval(participantsInterval);
           if (roomCheckInterval) clearInterval(roomCheckInterval);
-          if (roomStatusInterval) clearInterval(roomStatusInterval);
           if (sessionsRefreshInterval) clearInterval(sessionsRefreshInterval);
+          if (problemCheckInterval) clearInterval(problemCheckInterval);
           return;
         }
 
@@ -476,9 +487,6 @@ export const useRoomRealtime = (roomId: string | null): UseRoomRealtimeReturn =>
       }
       if (roomCheckInterval) {
         clearInterval(roomCheckInterval);
-      }
-      if (roomStatusInterval) {
-        clearInterval(roomStatusInterval);
       }
       if (sessionsRefreshInterval) {
         clearInterval(sessionsRefreshInterval);

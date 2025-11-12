@@ -57,6 +57,7 @@ export interface GameSession {
   accuracy: number;
   difficulty: string;
   played_at: string;
+  user?: User;
 }
 
 // ===== 멀티플레이어 타입 =====

@@ -31,7 +31,7 @@ type Screen =
 
 function App() {
   const { user } = useAuth();
-  const { currentRoom, createRoom, joinRoomByCode, leaveRoom, startGame, finishGame, loading: roomLoading, error: roomError, clearError: clearRoomError } = useRoom();
+  const { currentRoom, createRoom, joinRoomByCode, leaveRoom, startGame, loading: roomLoading, error: roomError, clearError: clearRoomError } = useRoom();
   
   const [screen, setScreen] = useState<Screen>('main');
   const [difficulty, setDifficulty] = useState('normal');
@@ -78,12 +78,12 @@ function App() {
   };
 
   // 방 생성 완료
-  const handleRoomCreated = (roomId: string) => {
+  const handleRoomCreated = () => {
     setScreen('multiplayer-waiting');
   };
 
   // 방 참가 완료
-  const handleRoomJoined = (roomId: string) => {
+  const handleRoomJoined = () => {
     setScreen('multiplayer-waiting');
   };
 

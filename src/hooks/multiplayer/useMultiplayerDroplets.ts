@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Droplet, ItemType } from '../../types';
 import { DIFFICULTY_CONFIGS, GAME_CONFIG } from '../../constants';
 import { generateRoomProblem, clearRoomProblem } from '../../services/roomService';
-import { useAuth } from '../../contexts/AuthContext';
 
 interface UseMultiplayerDropletsOptions {
   roomId: string;
@@ -31,7 +30,6 @@ export function useMultiplayerDroplets({
   isHost,
   roomStatus,
 }: UseMultiplayerDropletsOptions) {
-  const { user } = useAuth();
   const [droplets, setDroplets] = useState<Droplet[]>([]);
   const onDropletMissedRef = useRef(onDropletMissed);
   const lastProblemIdRef = useRef<string | null>(null);

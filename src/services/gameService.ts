@@ -1,5 +1,4 @@
 import { supabase } from '../utils/supabase';
-import { GameSession, User } from '../types';
 import { calculateAccuracy } from '../utils/gameLogic';
 
 /**
@@ -21,7 +20,7 @@ export const gameService = {
       const accuracy = calculateAccuracy(correctCount, totalCount);
 
       // 1. game_sessions 테이블에 저장
-      const { data: session, error: sessionError } = await supabase
+      const { error: sessionError } = await supabase
         .from('game_sessions')
         .insert([{
           user_id: userId,
@@ -31,9 +30,7 @@ export const gameService = {
           total_count: totalCount,
           accuracy,
           difficulty,
-        }])
-        .select()
-        .single();
+        }]);
 
       if (sessionError) {
         console.error('[gameService] game_sessions 저장 실패:', sessionError);
